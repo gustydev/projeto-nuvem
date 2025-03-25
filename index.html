@@ -1,86 +1,99 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Produtos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Produtos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container mt-5">
-    <h2 class="text-center">Gestão de Produtos</h2>
+  <h2 class="text-center">Gestão de Produtos</h2>
+  <div class="mb-3">
+    <input type="text" id="nome" class="form-control" placeholder="Nome do Produto">
+    <input type="number" id="preco" class="form-control mt-2" placeholder="Preço">
+    <input type="text" id="categoria" class="form-control mt-2" placeholder="Categoria">
+    <button id="addProduto" class="btn btn-primary mt-2">Adicionar Produto</button>
+  </div>
+  <h3>Lista de Produtos</h3>
+  <ul id="lista-produtos" class="list-group"></ul>
 
-    <div class="mb-3">
-        <input type="text" id="nome" class="form-control" placeholder="Nome do Produto">
-        <input type="number" id="preco" class="form-control mt-2" placeholder="Preço">
-        <input type="text" id="categoria" class="form-control mt-2" placeholder="Categoria">
-        <button onclick="criarProduto()" class="btn btn-primary mt-2">Adicionar Produto</button>
-    </div>
+  <script type="module">
+    const API_URL = "https://parseapi.back4app.com/functions";
 
-    <h3>Lista de Produtos</h3>
-    <ul id="lista-produtos" class="list-group"></ul>
+    async function loadConfig() {
+      const res = await fetch('/api/config');
+      if (!res.ok) {
+        throw new Error("Erro ao carregar configurações");
+      }
+      return await res.json();
+    }
 
-    <script type="module">
-        const API_URL = "https://parseapi.back4app.com/functions";
-        const APP_ID = import.meta.env.NEXT_PUBLIC_PARSE_APP_ID;
-        const API_KEY = import.meta.env.NEXT_PUBLIC_PARSE_API_KEY;
+    async function init() {
+      // Busca as variáveis de ambiente via endpoint serverless
+      const { APP_ID, API_KEY } = await loadConfig();
 
-        async function criarProduto() {
-            const nome = document.getElementById("nome").value;
-            const preco = Number(document.getElementById("preco").value); // Convertendo string para número
-            const categoria = document.getElementById("categoria").value;
+      // Define as funções do CRUD e as torna acessíveis globalmente
+      window.criarProduto = async function criarProduto() {
+        const nome = document.getElementById("nome").value;
+        const preco = Number(document.getElementById("preco").value); // Converte string para número
+        const categoria = document.getElementById("categoria").value;
 
-            await fetch(`${API_URL}/criarProduto`, {
-                method: "POST",
-                headers: {
-                    "X-Parse-Application-Id": APP_ID,
-                    "X-Parse-REST-API-Key": API_KEY,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ nome, preco, categoria }),
-            });
-
-            listarProdutos();
-        }
-
-        async function listarProdutos() {
-            const response = await fetch(`${API_URL}/listarProdutos`, {
-                method: "POST",
-                headers: {
-                    "X-Parse-Application-Id": APP_ID,
-                    "X-Parse-REST-API-Key": API_KEY,
-                },
-            });
-
-            const data = await response.json();
-            const lista = document.getElementById("lista-produtos");
-            lista.innerHTML = "";
-
-            data.result.forEach((produto) => {
-                const item = document.createElement("li");
-                item.className = "list-group-item";
-                item.innerHTML = `
-                    ${produto.nome} - R$ ${produto.preco} - ${produto.categoria}
-                    <button onclick="excluirProduto('${produto.objectId}')" class="btn btn-danger btn-sm float-end">Excluir</button>
-                `;
-                lista.appendChild(item);
-            });
-        }
-
-        async function excluirProduto(id) {
-            await fetch(`${API_URL}/excluirProduto`, {
-                method: "POST",
-                headers: {
-                    "X-Parse-Application-Id": APP_ID,
-                    "X-Parse-REST-API-Key": API_KEY,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ id }),
-            });
-
-            listarProdutos();
-        }
+        await fetch(`${API_URL}/criarProduto`, {
+          method: "POST",
+          headers: {
+            "X-Parse-Application-Id": APP_ID,
+            "X-Parse-REST-API-Key": API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nome, preco, categoria }),
+        });
 
         listarProdutos();
-    </script>
+      };
+
+      window.listarProdutos = async function listarProdutos() {
+        const response = await fetch(`${API_URL}/listarProdutos`, {
+          method: "POST",
+          headers: {
+            "X-Parse-Application-Id": APP_ID,
+            "X-Parse-REST-API-Key": API_KEY,
+          },
+        });
+        const data = await response.json();
+        const lista = document.getElementById("lista-produtos");
+        lista.innerHTML = "";
+        data.result.forEach((produto) => {
+          const item = document.createElement("li");
+          item.className = "list-group-item";
+          item.innerHTML = `
+            ${produto.nome} - R$ ${produto.preco} - ${produto.categoria}
+            <button onclick="excluirProduto('${produto.objectId}')" class="btn btn-danger btn-sm float-end">Excluir</button>
+          `;
+          lista.appendChild(item);
+        });
+      };
+
+      window.excluirProduto = async function excluirProduto(id) {
+        await fetch(`${API_URL}/excluirProduto`, {
+          method: "POST",
+          headers: {
+            "X-Parse-Application-Id": APP_ID,
+            "X-Parse-REST-API-Key": API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id }),
+        });
+        listarProdutos();
+      };
+
+      // Associa o botão de adicionar com a função
+      document.getElementById("addProduto").addEventListener("click", window.criarProduto);
+
+      // Inicializa a listagem de produtos
+      listarProdutos();
+    }
+
+    init();
+  </script>
 </body>
 </html>
