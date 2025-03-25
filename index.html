@@ -19,12 +19,10 @@
     <h3>Lista de Produtos</h3>
     <ul id="lista-produtos" class="list-group"></ul>
 
-    <!-- Carrega as variáveis de ambiente -->
-    <script src="config.js"></script>
-    <script>
+    <script type="module">
         const API_URL = "https://parseapi.back4app.com/functions";
-        const APP_ID = ENV.APP_ID;
-        const API_KEY = ENV.API_KEY;
+        const APP_ID = import.meta.env.NEXT_PUBLIC_PARSE_APP_ID;
+        const API_KEY = import.meta.env.NEXT_PUBLIC_PARSE_API_KEY;
 
         async function criarProduto() {
             const nome = document.getElementById("nome").value;
