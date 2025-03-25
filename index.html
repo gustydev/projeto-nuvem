@@ -18,10 +18,11 @@
 
     <h3>Lista de Produtos</h3>
     <ul id="lista-produtos" class="list-group"></ul>
-    
-    <script src="config.js"></script> <!-- Importando configurações seguras -->
+
     <script>
         const API_URL = "https://parseapi.back4app.com/functions";
+        const APP_ID = process.env.NEXT_PUBLIC_PARSE_APP_ID;
+        const API_KEY = process.env.NEXT_PUBLIC_PARSE_API_KEY;
 
         async function criarProduto() {
             const nome = document.getElementById("nome").value;
@@ -31,8 +32,8 @@
             await fetch(`${API_URL}/criarProduto`, {
                 method: "POST",
                 headers: {
-                    "X-Parse-Application-Id": CONFIG.APP_ID,
-                    "X-Parse-REST-API-Key": CONFIG.API_KEY,
+                    "X-Parse-Application-Id": APP_ID,
+                    "X-Parse-REST-API-Key": API_KEY,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ nome, preco, categoria }),
@@ -45,8 +46,8 @@
             const response = await fetch(`${API_URL}/listarProdutos`, {
                 method: "POST",
                 headers: {
-                    "X-Parse-Application-Id": CONFIG.APP_ID,
-                    "X-Parse-REST-API-Key": CONFIG.API_KEY,
+                    "X-Parse-Application-Id": APP_ID,
+                    "X-Parse-REST-API-Key": API_KEY,
                 },
             });
 
@@ -69,8 +70,8 @@
             await fetch(`${API_URL}/excluirProduto`, {
                 method: "POST",
                 headers: {
-                    "X-Parse-Application-Id": CONFIG.APP_ID,
-                    "X-Parse-REST-API-Key": CONFIG.API_KEY,
+                    "X-Parse-Application-Id": APP_ID,
+                    "X-Parse-REST-API-Key": API_KEY,
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ id }),
