@@ -22,13 +22,8 @@
   <ul id="lista-produtos" class="list-group"></ul>
 
   <script type="module">
-    
-    const user = JSON.parse(localStorage.getItem("user"));
 
-    if (!user || !user.isAdmin) {
-      alert("Acesso negado! Apenas administradores podem acessar.");
-      window.location.href = "login.html";
-    }
+    
 
     const API_URL = "https://parseapi.back4app.com/functions";
 
