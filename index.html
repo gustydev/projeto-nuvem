@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestão de Produtos</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body class="container mt-5">
   <h2 class="text-center">Gestão de Produtos</h2>
-
+  
+  <button id="logoutBtn" class="btn btn-danger mb-4">Sair</button>
+  
   <div class="mb-3">
     <input type="text" id="nome" class="form-control" placeholder="Nome do Produto">
     <input type="number" id="preco" class="form-control mt-2" placeholder="Preço">
     <input type="text" id="categoria" class="form-control mt-2" placeholder="Categoria">
     <button id="addProduto" class="btn btn-primary mt-2">Adicionar Produto</button>
   </div>
-
+ 
   <h3>Lista de Produtos</h3>
   <ul id="lista-produtos" class="list-group"></ul>
 
   <script type="module">
+    const API_URL = "https://parseapi.back4app.com/functions";
 
+    // Verifica se o usuário está autenticado e é admin
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user || !user.isAdmin) {
@@ -30,10 +32,10 @@
       window.location.href = "login.html";
     }
 
-    const API_URL = "https://parseapi.back4app.com/functions";
-
-
-    let produtoEditando = null;
+    document.getElementById("logoutBtn").addEventListener("click", function() {
+      localStorage.removeItem("user");
+      window.location.href = "login.html"; // Redireciona para o login
+    });
 
     async function loadConfig() {
       const res = await fetch('/api/config');
@@ -44,11 +46,13 @@
     }
 
     async function init() {
+      // Busca as variáveis de ambiente via endpoint serverless
       const { APP_ID, API_KEY } = await loadConfig();
 
+      // Define as funções do CRUD e as torna acessíveis globalmente
       window.criarProduto = async function criarProduto() {
         const nome = document.getElementById("nome").value;
-        const preco = Number(document.getElementById("preco").value);
+        const preco = Number(document.getElementById("preco").value); // Converte string para número
         const categoria = document.getElementById("categoria").value;
 
         await fetch(`${API_URL}/criarProduto`, {
@@ -80,60 +84,12 @@
           item.className = "list-group-item";
           item.innerHTML = `
             ${produto.nome} - R$ ${produto.preco} - ${produto.categoria}
-            <button onclick="editarProduto('${produto.objectId}', '${produto.nome}', '${produto.preco}', '${produto.categoria}')" class="btn btn-warning btn-sm mx-2 float-end">Editar</button>
             <button onclick="excluirProduto('${produto.objectId}')" class="btn btn-danger btn-sm float-end">Excluir</button>
+            <button onclick="editarProduto('${produto.objectId}')" class="btn btn-warning btn-sm float-end me-2">Editar</button>
           `;
           lista.appendChild(item);
         });
       };
-
-      window.editarProduto = function editarProduto(id, nome, preco, categoria) {
-        document.getElementById("nome").value = nome;
-        document.getElementById("preco").value = preco;
-        document.getElementById("categoria").value = categoria;
-
-        produtoEditando = id;
-        const botao = document.getElementById("addProduto");
-        botao.innerText = "Salvar Alterações";
-        botao.classList.remove("btn-primary");
-        botao.classList.add("btn-success");
-
-        botao.removeEventListener("click", window.criarProduto);
-        botao.addEventListener("click", salvarAlteracoes);
-      };
-
-      async function salvarAlteracoes() {
-        if (!produtoEditando) return;
-
-        const nome = document.getElementById("nome").value;
-        const preco = Number(document.getElementById("preco").value);
-        const categoria = document.getElementById("categoria").value;
-
-        await fetch(`${API_URL}/editarProduto`, {
-          method: "POST",
-          headers: {
-            "X-Parse-Application-Id": APP_ID,
-            "X-Parse-REST-API-Key": API_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ id: produtoEditando, nome, preco, categoria }),
-        });
-
-        document.getElementById("nome").value = "";
-        document.getElementById("preco").value = "";
-        document.getElementById("categoria").value = "";
-        produtoEditando = null;
-
-        const botao = document.getElementById("addProduto");
-        botao.innerText = "Adicionar Produto";
-        botao.classList.remove("btn-success");
-        botao.classList.add("btn-primary");
-
-        botao.removeEventListener("click", salvarAlteracoes);
-        botao.addEventListener("click", window.criarProduto);
-
-        listarProdutos();
-      }
 
       window.excluirProduto = async function excluirProduto(id) {
         await fetch(`${API_URL}/excluirProduto`, {
@@ -148,12 +104,31 @@
         listarProdutos();
       };
 
+      window.editarProduto = async function editarProduto(id) {
+        const nome = prompt("Novo nome do produto:");
+        const preco = prompt("Novo preço do produto:");
+        const categoria = prompt("Nova categoria do produto:");
+
+        await fetch(`${API_URL}/editarProduto`, {
+          method: "POST",
+          headers: {
+            "X-Parse-Application-Id": APP_ID,
+            "X-Parse-REST-API-Key": API_KEY,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, nome, preco, categoria }),
+        });
+        listarProdutos();
+      };
+
+      // Associa o botão de adicionar com a função
       document.getElementById("addProduto").addEventListener("click", window.criarProduto);
+
+      // Inicializa a listagem de produtos
       listarProdutos();
     }
 
     init();
   </script>
 </body>
-
 </html>
