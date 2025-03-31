@@ -36,7 +36,7 @@
 
       const data = await response.json();
       if (data.error) {
-        document.getElementById("errorMessage").textContent = "Usuário ou senha incorretos.";
+        document.getElementById("errorMessage").textContent = ("Usuário ou senha incorretos." + data.error);
       } else {
         localStorage.setItem("user", JSON.stringify(data.result));
         window.location.href = "index.html"; // Redireciona para o CRUD
